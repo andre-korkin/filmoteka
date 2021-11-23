@@ -1,21 +1,20 @@
 const $header = document.querySelector('header')
+    const $header_searh = $header.querySelector('#search')
+    $header_searh.addEventListener('click', () => {
+        $h1.style.display = 'none'
+        $filter.style.display = 'block'
+        $sorter.style.display = 'block'
+    })
+
+    const $favorites = $header.querySelector('#favorites')
+    const $unviewed = $header.querySelector('#unviewed')
+    const $viewed = $header.querySelector('#viewed')
+
 const $main = document.querySelector('main')
+    const $h1 = $main.querySelector('h1')
+    const $filter = $main.querySelector('#filter')
+    const $sorter = $main.querySelector('#sorter')
 
-const $menu = $header.querySelector('#menu')  // открывашка фильтров
-$menu.addEventListener('click', function() {
-    if(this.textContent === 'Открыть') {
-        this.textContent = 'Закрыть'
-        $header.classList.remove('close')
-        $header.classList.add('open')
-    }
-    else {
-        this.textContent = 'Открыть'
-        $header.classList.remove('open')
-        $header.classList.add('close')
-    }
-})
-
-$main.innerHTML = '<h1>Filmoteka</h1>'
 //----------------------------------------------
 
 class Filter {
