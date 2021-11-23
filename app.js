@@ -1,8 +1,18 @@
 const $header = document.querySelector('header')
 const $main = document.querySelector('main')
 
-$header.addEventListener('click', function() {
-    this.classList.add('open')
+const $menu = $header.querySelector('#menu')  // открывашка фильтров
+$menu.addEventListener('click', function() {
+    if(this.textContent === 'Открыть') {
+        this.textContent = 'Закрыть'
+        $header.classList.remove('close')
+        $header.classList.add('open')
+    }
+    else {
+        this.textContent = 'Открыть'
+        $header.classList.remove('open')
+        $header.classList.add('close')
+    }
 })
 
 $main.innerHTML = '<h1>Filmoteka</h1>'
