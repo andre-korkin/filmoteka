@@ -1,0 +1,12 @@
+1. Create new repositorium on GitHub and clone to local // git clone [url]
+2. Create new branch (develop) // git branch develop
+3. Checkout develop branch // git checkout develop
+4. Push develop branch to GitHub // git push origin develop
+5. Create new branches, work for they
+6. Push this branches  // git push origin [branch]
+7. Merge this branches with develop // on GitHub
+8. Pull new data from GitHub // git pull origin develop
+9. Create new branch for release from develop // git checkout -b release/0.1.0
+10. When release branch complite -> merge to main and develop -> delete release
+11. If main branch has errors then create new hotfix branch from main // git checkout -b hotfix/[branch]
+12. When hotfix branch complite -> merge to main and develop
