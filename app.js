@@ -112,6 +112,7 @@ function createSearchPage() {  // создание страницы поиска
     $main.innerHTML = ''
     createFilters(filters)
     createSorters(sorters)
+    createButtonStart()
 }
 
 //----------------------------------------------
@@ -227,4 +228,16 @@ function createSorters(sorters) {
     $sorters.append($sorter)})
 
     $main.append($sorters)
+}
+
+//----------------------------------------------
+
+function createButtonStart() {
+    const $start_block = document.createElement('div')
+    $start_block.id = 'start_block'
+        const $start_button = document.createElement('div')
+        $start_button.id = 'start_button'
+        $start_button.innerHTML = '<h2>Start</h2>'
+    $start_block.append($start_button)
+    $main.append($start_block)
 }
