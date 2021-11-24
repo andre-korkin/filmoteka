@@ -30,7 +30,6 @@ header {
     align-items: center;
     justify-content: space-around;
     font-size: 18px;
-    /* color: greenyellow; */
     text-transform: uppercase;
 }
 
@@ -76,7 +75,7 @@ main {
 #container {
     width: 1200px;
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: space-around;
     position: relative;
     top: 40px;
@@ -150,4 +149,26 @@ h3 {
 
 #start_button:hover {
     color: red;
+}
+
+#movies_list {
+    position: absolute;
+    width: 100%;
+    height: 1640px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.movie_block {
+    width: 220px;
+    height: 500px;
+    margin: 40px;
+    padding: 40px 40px 50px 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    box-shadow: 2px 2px 3px #000;
+    color: #fff;
+    position: relative;
+    top: -380px;
 }

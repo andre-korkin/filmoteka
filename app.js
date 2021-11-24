@@ -16,6 +16,7 @@ const url_sorter = {  // расширение URL для сортировки п
 
 let page = 1  // текущая страница в списке загружаемых данных, изначально = 1
 let pages = 0  // общее количество страниц загружаемых данных, становится известной после первого сканирования
+let limit = 9  // количество результатов на странице
 
 const token = 'DQRKYHQ-SYFMEKN-H88JA7D-M8TMZRB'
 
@@ -31,6 +32,7 @@ let url_ext = () => {  // полное готовое расширение URL, 
     url_sorter["rating.kp"] != 0 ? url += '&sortField=rating.kp&sortType=' + url_sorter["rating.kp"] : false
 
     url += '&page=' + page
+    url += '&limit=' + limit
     url += '&token=' + token
 
     return url
@@ -85,9 +87,14 @@ const sorters = [  // сортировка по умолчанию, нужны �
 
 //----------------------------------------------
 
+const $body = document.querySelector('body')
+
 const $header = document.querySelector('header')  // отрисовка меню
+
     const $header_searh = $header.querySelector('#search')
-    $header_searh.addEventListener('click', () => createSearchPage())
+    $header_searh.addEventListener('click', () => {
+        createSearchPage()
+    })
 
     const $favorites = $header.querySelector('#favorites')
     $favorites.addEventListener('click', () => createFavoritesPage())
@@ -100,24 +107,34 @@ const $header = document.querySelector('header')  // отрисовка меню
 
 //----------------------------------------------
 
-let main_html = '<h1>Filmoteka</h1>'
+let main_html = `<h1>Filmoteka</h1>`
 
 const $main = document.querySelector('#container')
 $main.innerHTML = main_html
 
 //----------------------------------------------
 
+let s = 0  // счетчик нажатий на пункт Поиск
+
 function createSearchPage() {  // создание страницы поиска: блоков фильтрации и сортировки и кнопки Старт
-    main_html = $main.innerHTML
-    $main.innerHTML = ''
-    createFilters(filters)
-    createSorters(sorters)
-    createButtonStart()
+    if(s == 0) {  // если первый раз нажимаем, то отрисовывается этот модуль
+        main_html = $main.innerHTML
+        $main.innerHTML = ''
+        createFilters(filters)
+        createSorters(sorters)
+        createButtonStart()
+        s = 1
+    }
+    else {  // если второй раз нажимаем, отрисовывается предыдущая инфа со страницы
+        $main.innerHTML = main_html
+        s = 0
+    }
+    return s
 }
 
 //----------------------------------------------
 
-function createFilters(filters) {
+function createFilters(filters) {  // отрисовка блока фильтрации
     const $filters = document.createElement('div')
     $filters.id = 'filter'
         const $h2 = document.createElement('h2')
@@ -178,7 +195,7 @@ function createFilters(filters) {
 
 //----------------------------------------------
 
-function createSorters(sorters) {
+function createSorters(sorters) {  // отрисовка блока сортировки
     const $sorters = document.createElement('div')
     $sorters.id = 'sorter'
         const $h2 = document.createElement('h2')
@@ -232,12 +249,43 @@ function createSorters(sorters) {
 
 //----------------------------------------------
 
-function createButtonStart() {
+function createButtonStart() {  // отрисока кнопки Старт
     const $start_block = document.createElement('div')
     $start_block.id = 'start_block'
         const $start_button = document.createElement('div')
         $start_button.id = 'start_button'
         $start_button.innerHTML = '<h2>Start</h2>'
+        $start_button.addEventListener('click', () => getMovieList())
     $start_block.append($start_button)
     $main.append($start_block)
+}
+
+//----------------------------------------------
+
+async function getMovieList() {  // получаем список фильмов
+    s = 0  // сбрасываем счетчик нажатий на пункт меню
+    $main.innerHTML = 'Идет загрузка данных...'
+
+    let req = await fetch(url_ext())
+    let res = await req.json()
+
+    pages = res.pages  // получаем количество общее страниц по данным фильтрам, будем использовать для пагинации
+
+    renderMovieList(res.docs)
+}
+
+//----------------------------------------------
+
+function renderMovieList(movie_list) {
+    $main.innerHTML = ''
+    $body.style.height = 'auto'
+
+    const $movies_list = document.createElement('div')
+    $movies_list.id = 'movies_list'
+        movie_list.forEach(obj => {
+            let $movie_block = document.createElement('div')
+            $movie_block.className = 'movie_block'
+            $movies_list.append($movie_block)
+        })
+    $main.append($movies_list)
 }
