@@ -252,10 +252,12 @@ function createSorters(sorters) {  // отрисовка блока сортир
 function createButtonStart() {  // отрисока кнопки Старт
     const $start_block = document.createElement('div')
     $start_block.id = 'start_block'
+
         const $start_button = document.createElement('div')
         $start_button.id = 'start_button'
         $start_button.innerHTML = '<h2>Start</h2>'
         $start_button.addEventListener('click', () => getMovieList())
+
     $start_block.append($start_button)
     $main.append($start_block)
 }
@@ -278,13 +280,27 @@ async function getMovieList() {  // получаем список фильмов
 
 function renderMovieList(movie_list) {
     $main.innerHTML = ''
-    $body.style.height = 'auto'
 
     const $movies_list = document.createElement('div')
     $movies_list.id = 'movies_list'
         movie_list.forEach(obj => {
             let $movie_block = document.createElement('div')
             $movie_block.className = 'movie_block'
+
+                let $h3 = document.createElement('h3')
+                $h3.textContent = obj.name + ` (${obj.year})`
+
+                let $img = document.createElement('img')
+                $img.src = obj.poster.previewUrl
+
+                let $imdb = document.createElement('p')
+                $imdb.innerHTML = `IMDB: <span>${obj.rating.imdb} (${obj.votes.imdb})</span>`
+
+                let $kp = document.createElement('p')
+                $kp.innerHTML = `Кинопоиск: <span>${obj.rating.kp} (${obj.votes.kp})</span>`
+
+                $movie_block.append($h3, $img, $imdb, $kp)
+
             $movies_list.append($movie_block)
         })
     $main.append($movies_list)
