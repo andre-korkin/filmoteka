@@ -1,4 +1,4 @@
-const path = 'https://api.kinopoisk.dev/'  // Основной URL запроса
+const path = 'https://api.kinopoisk.dev/movie?'  // Основной URL запроса
 
 let url_type = 'movie'  // по умолчанию это фильм
 
@@ -19,24 +19,6 @@ let pages = 0  // общее количество страниц загружа�
 let limit = 9  // количество результатов на странице
 
 const token = 'DQRKYHQ-SYFMEKN-H88JA7D-M8TMZRB'
-
-let url_ext = () => {  // полное готовое расширение URL, зависит от фильтров и сортировки, создается при нажатии на кнопку Старт
-    let url = path + url_type + '?' + 'field=type&search=' + url_type
-
-    url += '&field=year&search=' + url_filter["year"].join('-')
-    url += '&field=rating.imdb&search=' + url_filter["rating.imdb"].join('-')
-    url += '&field=rating.kp&search=' + url_filter["rating.kp"].join('-')
-
-    url_sorter["year"] != 0 ? url += '&sortField=year&sortType=' + url_sorter["year"] : false
-    url_sorter["rating.imdb"] != 0 ? url += '&sortField=rating.imdb&sortType=' + url_sorter["rating.imdb"] : false
-    url_sorter["rating.kp"] != 0 ? url += '&sortField=rating.kp&sortType=' + url_sorter["rating.kp"] : false
-
-    url += '&page=' + page
-    url += '&limit=' + limit
-    url += '&token=' + token
-
-    return url
-}
 
 //----------------------------------------------
 
@@ -84,6 +66,46 @@ const sorters = [  // сортировка по умолчанию, нужны �
         sort: url_sorter["rating.kp"]
     }
 ]
+
+//----------------------------------------------
+
+let url_ext = () => {  // полное готовое расширение URL, зависит от фильтров и сортировки, создается при нажатии на кнопку Старт
+    let url = path + 'field=type&search=' + url_type
+
+    url += `&field=year&search=${filters[0].min}-${filters[0].max}`
+    url += `&field=rating.imdb&search=${filters[1].min}-${filters[1].max}`
+    url += `&field=rating.kp&search=${filters[2].min}-${filters[2].max}`
+
+    sorters[0].sort != 0 ? url += `&sortField=year&sortType=${sorters[0].sort}` : false
+    sorters[1].sort != 0 ? url += `&sortField=rating.imdb&sortType=${sorters[1].sort}` : false
+    sorters[2].sort != 0 ? url += `&sortField=rating.kp&sortType=${sorters[2].sort}` : false
+
+    url += '&page=' + page
+    url += '&limit=' + limit
+    url += '&token=' + token
+
+    return url
+}
+
+//----------------------------------------------
+
+const db = {  // здесь будут храниться id фильмов и сериалов, по умолчанию массивы пустые или подтянутые из localStorage
+    favorites: getArr('favorites'),
+    unviewed: getArr('unviewed'),
+    viewed: getArr('viewed')
+}
+
+function getArr(x) {  // получаем данные из localStorage или создаем ключи (в первый раз)
+    let arr = localStorage.getItem(x)
+    !arr ? localStorage.setItem(x, JSON.stringify([])) : arr = JSON.parse(arr)
+    return arr
+}
+
+function checkArr(x, id) {  // изменяем данные в localStorage
+    let arr = JSON.parse(localStorage.getItem(x))
+    arr.includes(id) ? arr.splice(arr.indexOf(id), 1) : arr.push(id)
+    localStorage.setItem(x, JSON.stringify(arr))
+}
 
 //----------------------------------------------
 
@@ -147,6 +169,7 @@ function createFilters(filters) {  // отрисовка блока фильтр
             $type_movie.value = 'movie'
             $type_movie.checked = true
             $type_movie.name = 'typecontent'
+            $type_movie.addEventListener('click', () => url_type = 'movie')
 
             const $span_movie = document.createElement('span')
             $span_movie.textContent = 'Фильмы'
@@ -155,9 +178,11 @@ function createFilters(filters) {  // отрисовка блока фильтр
             $type_season.type = 'radio'
             $type_season.value = 'season'
             $type_season.name = 'typecontent'
+            $type_season.addEventListener('click', () => url_type = 'tv-series')
 
             const $span_season = document.createElement('span')
             $span_season.textContent = 'Сериалы'
+
         $type.append($type_movie, $span_movie, $type_season, $span_season)
 
     $filters.append($h2, $type)
@@ -165,6 +190,7 @@ function createFilters(filters) {  // отрисовка блока фильтр
     filters.forEach(obj => {
         let $filter = document.createElement('div')
         $filter.id = obj.id
+        
             let $h3 = document.createElement('h3')
             $h3.textContent = obj.title
 
@@ -177,6 +203,7 @@ function createFilters(filters) {  // отрисовка блока фильтр
             $inp_min.min = obj.min
             $inp_min.max = obj.max
             $inp_min.value = obj.min
+            $inp_min.addEventListener('change', () => obj.min = $inp_min.value)
 
             let $span_max = document.createElement('span')
             $span_max.textContent = obj.max_label
@@ -187,6 +214,8 @@ function createFilters(filters) {  // отрисовка блока фильтр
             $inp_max.min = obj.min
             $inp_max.max = obj.max
             $inp_max.value = obj.max
+            $inp_max.addEventListener('change', () => obj.max = $inp_max.value)
+
         $filter.append($h3, $span_min, $inp_min, $span_max, $inp_max)
     $filters.append($filter)})
 
@@ -214,6 +243,7 @@ function createSorters(sorters) {  // отрисовка блока сортир
                 $inp_up.type = 'radio'
                 $inp_up.value = 1
                 obj.sort == 1 ? $inp_up.checked = true : $inp_up.checked = false
+                $inp_up.addEventListener('change', () => obj.sort = 1)
 
                 let $span_up = document.createElement('span')
                 $span_up.textContent = 'По возрастанию'
@@ -225,6 +255,7 @@ function createSorters(sorters) {  // отрисовка блока сортир
                 $inp_down.type = 'radio'
                 $inp_down.value = -1
                 obj.sort == -1 ? $inp_down.checked = true : $inp_down.checked = false
+                $inp_down.addEventListener('change', () => obj.sort = -1)
 
                 let $span_down = document.createElement('span')
                 $span_down.textContent = 'По убыванию'
@@ -236,6 +267,7 @@ function createSorters(sorters) {  // отрисовка блока сортир
                 $inp_zero.type = 'radio'
                 $inp_zero.value = 0
                 obj.sort == 0 ? $inp_zero.checked = true : $inp_zero.checked = false
+                $inp_zero.addEventListener('change', () => obj.sort = 0)
 
                 let $span_zero = document.createElement('span')
                 $span_zero.textContent = 'Не сортировать'
@@ -278,7 +310,7 @@ async function getMovieList() {  // получаем список фильмов
 
 //----------------------------------------------
 
-function renderMovieList(movie_list) {
+function renderMovieList(movie_list) {  // отрисовка списка фильмов
     $main.innerHTML = ''
 
     const $movies_list = document.createElement('div')
@@ -289,9 +321,13 @@ function renderMovieList(movie_list) {
 
                 let $h3 = document.createElement('h3')
                 $h3.textContent = obj.name + ` (${obj.year})`
+                $h3.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $h3.addEventListener('mouseout', () => $h3.style.color = '#fff')
 
                 let $img = document.createElement('img')
                 $img.src = obj.poster.previewUrl
+                $img.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $img.addEventListener('mouseout', () => $h3.style.color = '#fff')
 
                 let $imdb = document.createElement('p')
                 $imdb.innerHTML = `IMDB: <span>${obj.rating.imdb} (${obj.votes.imdb})</span>`
@@ -299,7 +335,45 @@ function renderMovieList(movie_list) {
                 let $kp = document.createElement('p')
                 $kp.innerHTML = `Кинопоиск: <span>${obj.rating.kp} (${obj.votes.kp})</span>`
 
-                $movie_block.append($h3, $img, $imdb, $kp)
+                let $check_block = document.createElement('div')
+                $check_block.className = 'check_block'
+                    let $fav_point = document.createElement('span')
+                    $fav_point.className = 'fav_point'
+                    $fav_point.title = 'Добавить в избранное'
+                    db.favorites.includes(obj.id) ? $fav_point.classList.add('fav_fill') : false
+                    $fav_point.addEventListener('click', () => {
+                        $fav_point.classList.toggle('fav_fill')
+                        checkArr('favorites', obj.id)
+                    })
+
+                    let $unview_point = document.createElement('span')
+                    $unview_point.className = 'unview_point'
+                    $unview_point.title = 'Добавить в непросмотренное'
+                    db.unviewed.includes(obj.id) ? $unview_point.classList.add('unview_fill') : false
+                    $unview_point.addEventListener('click', () => {
+                        $unview_point.classList.add('unview_fill')
+                        checkArr('unviewed', obj.id)
+                        if($view_point.classList.contains('view_fill')) {
+                            $view_point.classList.remove('view_fill')
+                            checkArr('viewed', obj.id)
+                        }
+                    })
+
+                    let $view_point = document.createElement('span')
+                    $view_point.className = 'view_point'
+                    $view_point.title = 'Добавить в просмотренное'
+                    db.viewed.includes(obj.id) ? $view_point.classList.add('view_fill') : false
+                    $view_point.addEventListener('click', () => {
+                        $view_point.classList.add('view_fill')
+                        checkArr('viewed', obj.id)
+                        if($unview_point.classList.contains('unview_fill')) {
+                            $unview_point.classList.remove('unview_fill')
+                            checkArr('unviewed', obj.id)
+                        }
+                    })
+
+                    $check_block.append($fav_point, $unview_point, $view_point)
+                $movie_block.append($h3, $img, $imdb, $kp, $check_block)
 
             $movies_list.append($movie_block)
         })
