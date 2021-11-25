@@ -1,3 +1,7 @@
+version = '0.2.3'
+
+//----------------------------------------------
+
 const path = 'https://api.kinopoisk.dev/movie?'  // Основной URL запроса
 
 let url_type = 'movie'  // по умолчанию это фильм
@@ -129,7 +133,7 @@ const $header = document.querySelector('header')  // отрисовка меню
 
 //----------------------------------------------
 
-let main_html = `<h1>Filmoteka</h1>`
+let main_html = `<h1>Filmoteka <span>${version}</span></h1>`
 
 const $main = document.querySelector('#container')
 $main.innerHTML = main_html
@@ -303,6 +307,7 @@ async function getMovieList() {  // получаем список фильмов
     let req = await fetch(url_ext())
     let res = await req.json()
 
+    page = res.page  // получаем текущую страницу
     pages = res.pages  // получаем количество общее страниц по данным фильтрам, будем использовать для пагинации
 
     renderMovieList(res.docs)
@@ -377,5 +382,125 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
 
             $movies_list.append($movie_block)
         })
+
+        $movies_list.append(Pagination())
     $main.append($movies_list)
+}
+
+//----------------------------------------------
+
+function Pagination() {  // отрисовка блока пагинации
+    if(pages <= 10) {
+        return MiniPagination()
+    }
+    else {
+        return MaxiPagination()
+    }
+}
+
+function MiniPagination() {  // простая пагинация, показывает все страницы
+    const $pagination = document.createElement('div')
+    $pagination.id = 'pagination'
+
+        for(let i=1; i<=pages; i++) {
+            let $pag = document.createElement('div')
+            $pag.textContent = i
+            if(i == page) {
+                $pag.classList.add('active')
+            }
+            else {
+                $pag.addEventListener('click', () => {
+                    page = i
+                    getMovieList()
+                })
+            }
+            $pagination.append($pag)
+        }
+    
+    return $pagination
+}
+
+function MaxiPagination() {  // полная пагинация, показывает текущую страницу и общее количество страниц
+    const $pagination = document.createElement('div')
+    $pagination.id = 'pagination'
+
+    if(page == 1) {
+        const $first = document.createElement('div')
+        $first.textContent = 1
+        $first.classList.add('active')
+
+        const $right = document.createElement('div')
+        $right.textContent = '>'
+        $right.addEventListener('click', () => {
+            page++
+            getMovieList()
+        })
+
+        const $last = document.createElement('div')
+        $last.textContent = pages
+        $last.addEventListener('click', () => {
+            page = pages
+            getMovieList()
+        })
+
+        $pagination.append($first, $right, $last)
+    }
+    else if(page == pages) {
+        const $first = document.createElement('div')
+        $first.textContent = 1
+        $first.addEventListener('click', () => {
+            page = 1
+            getMovieList()
+        })
+
+        const $left = document.createElement('div')
+        $left.textContent = '<'
+        $left.addEventListener('click', () => {
+            page--
+            getMovieList()
+        })
+
+        const $last = document.createElement('div')
+        $last.textContent = pages
+        $last.classList.add('active')
+
+        $pagination.append($first, $left, $last)
+    }
+    else {
+        const $first = document.createElement('div')
+        $first.textContent = 1
+        $first.addEventListener('click', () => {
+            page = 1
+            getMovieList()
+        })
+
+        const $left = document.createElement('div')
+        $left.textContent = '<'
+        $left.addEventListener('click', () => {
+            page--
+            getMovieList()
+        })
+
+        const $current = document.createElement('div')
+        $current.textContent = page
+        $current.classList.add('active')
+
+        const $right = document.createElement('div')
+        $right.textContent = '>'
+        $right.addEventListener('click', () => {
+            page++
+            getMovieList()
+        })
+
+        const $last = document.createElement('div')
+        $last.textContent = pages
+        $last.addEventListener('click', () => {
+            page = pages
+            getMovieList()
+        })
+
+        $pagination.append($first, $left, $current, $right, $last)
+    }
+
+    return $pagination
 }
