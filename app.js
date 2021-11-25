@@ -1,4 +1,4 @@
-version = '0.2.3'
+version = '0.2.4'
 
 //----------------------------------------------
 
@@ -93,16 +93,12 @@ let url_ext = () => {  // полное готовое расширение URL, 
 
 //----------------------------------------------
 
-const db = {  // здесь будут храниться id фильмов и сериалов, по умолчанию массивы пустые или подтянутые из localStorage
-    favorites: getArr('favorites'),
-    unviewed: getArr('unviewed'),
-    viewed: getArr('viewed')
+function createArr(x) {  // получаем данные из localStorage или создаем ключи (в первый раз)
+    !localStorage.getItem(x) ? localStorage.setItem(x, JSON.stringify([])) : false
 }
 
-function getArr(x) {  // получаем данные из localStorage или создаем ключи (в первый раз)
-    let arr = localStorage.getItem(x)
-    !arr ? localStorage.setItem(x, JSON.stringify([])) : arr = JSON.parse(arr)
-    return arr
+function isArr(x, id) {
+    return JSON.parse(localStorage.getItem(x)).includes(id)
 }
 
 function checkArr(x, id) {  // изменяем данные в localStorage
@@ -317,6 +313,9 @@ async function getMovieList() {  // получаем список фильмов
 
 function renderMovieList(movie_list) {  // отрисовка списка фильмов
     $main.innerHTML = ''
+    createArr('favorites')
+    createArr('unviewed')
+    createArr('viewed')
 
     const $movies_list = document.createElement('div')
     $movies_list.id = 'movies_list'
@@ -345,7 +344,7 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     let $fav_point = document.createElement('span')
                     $fav_point.className = 'fav_point'
                     $fav_point.title = 'Добавить в избранное'
-                    db.favorites.includes(obj.id) ? $fav_point.classList.add('fav_fill') : false
+                    isArr('favorites', obj.id) ? $fav_point.classList.add('fav_fill') : false
                     $fav_point.addEventListener('click', () => {
                         $fav_point.classList.toggle('fav_fill')
                         checkArr('favorites', obj.id)
@@ -354,7 +353,7 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     let $unview_point = document.createElement('span')
                     $unview_point.className = 'unview_point'
                     $unview_point.title = 'Добавить в непросмотренное'
-                    db.unviewed.includes(obj.id) ? $unview_point.classList.add('unview_fill') : false
+                    isArr('unviewed', obj.id) ? $unview_point.classList.add('unview_fill') : false
                     $unview_point.addEventListener('click', () => {
                         $unview_point.classList.add('unview_fill')
                         checkArr('unviewed', obj.id)
@@ -367,7 +366,7 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     let $view_point = document.createElement('span')
                     $view_point.className = 'view_point'
                     $view_point.title = 'Добавить в просмотренное'
-                    db.viewed.includes(obj.id) ? $view_point.classList.add('view_fill') : false
+                    isArr('viewed', obj.id) ? $view_point.classList.add('view_fill') : false
                     $view_point.addEventListener('click', () => {
                         $view_point.classList.add('view_fill')
                         checkArr('viewed', obj.id)
