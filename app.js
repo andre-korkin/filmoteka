@@ -1,4 +1,4 @@
-version = '0.3.1'
+version = '0.3.2'
 
 //----------------------------------------------
 
@@ -123,6 +123,26 @@ function checkArr(x, obj) {  // изменяем данные в localStorage
         }
 
         filmoteka[x][obj.id] = film
+    }
+
+    localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
+}
+
+function otherCheckArr(x, id, obj) {  // изменяем данные в localStorage
+    let filmoteka = JSON.parse(localStorage.getItem('filmoteka'))
+    
+    if(id in filmoteka[x]) {  // если id переданного фильма есть в localStorage в переданном модуле
+        delete filmoteka[x][id]  // удаляем фильм
+    }
+    else {  // иначе - добавляем фильм в нужный модуль
+        let film = {
+            h3: obj.h3,
+            img: obj.img,
+            imdb: obj.imdb,
+            kp: obj.kp
+        }
+
+        filmoteka[x][id] = film
     }
 
     localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
@@ -575,36 +595,36 @@ function renderOtherList(movie_obj) {
                     $fav_point.className = 'fav_point'
                     $fav_point.title = 'Добавить в избранное'
                     isArr('favorites', id) ? $fav_point.classList.add('fav_fill') : false
-                    // $fav_point.addEventListener('click', () => {
-                    //     $fav_point.classList.toggle('fav_fill')
-                    //     checkArr('favorites', obj)
-                    // })
+                    $fav_point.addEventListener('click', () => {
+                        $fav_point.classList.toggle('fav_fill')
+                        otherCheckArr('favorites', id, movie_obj[id])
+                    })
 
                     let $unview_point = document.createElement('span')
                     $unview_point.className = 'unview_point'
                     $unview_point.title = 'Добавить в непросмотренное'
                     isArr('unviewed', id) ? $unview_point.classList.add('unview_fill') : false
-                    // $unview_point.addEventListener('click', () => {
-                    //     $unview_point.classList.add('unview_fill')
-                    //     checkArr('unviewed', obj)
-                    //     if($view_point.classList.contains('view_fill')) {
-                    //         $view_point.classList.remove('view_fill')
-                    //         checkArr('viewed', obj)
-                    //     }
-                    // })
+                    $unview_point.addEventListener('click', () => {
+                        $unview_point.classList.add('unview_fill')
+                        otherCheckArr('unviewed', id, movie_obj[id])
+                        if($view_point.classList.contains('view_fill')) {
+                            $view_point.classList.remove('view_fill')
+                            otherCheckArr('viewed', id, movie_obj[id])
+                        }
+                    })
 
                     let $view_point = document.createElement('span')
                     $view_point.className = 'view_point'
                     $view_point.title = 'Добавить в просмотренное'
                     isArr('viewed', id) ? $view_point.classList.add('view_fill') : false
-                    // $view_point.addEventListener('click', () => {
-                    //     $view_point.classList.add('view_fill')
-                    //     checkArr('viewed', obj)
-                    //     if($unview_point.classList.contains('unview_fill')) {
-                    //         $unview_point.classList.remove('unview_fill')
-                    //         checkArr('unviewed', obj)
-                    //     }
-                    // })
+                    $view_point.addEventListener('click', () => {
+                        $view_point.classList.add('view_fill')
+                        otherCheckArr('viewed', id, movie_obj[id])
+                        if($unview_point.classList.contains('unview_fill')) {
+                            $unview_point.classList.remove('unview_fill')
+                            otherCheckArr('unviewed', id, movie_obj[id])
+                        }
+                    })
 
                     $check_block.append($fav_point, $unview_point, $view_point)
                 $movie_block.append($h3, $img, $imdb, $kp, $check_block)
