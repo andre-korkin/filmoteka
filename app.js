@@ -93,18 +93,39 @@ let url_ext = () => {  // полное готовое расширение URL, 
 
 //----------------------------------------------
 
-function createArr(x) {  // получаем данные из localStorage или создаем ключи (в первый раз)
-    !localStorage.getItem(x) ? localStorage.setItem(x, JSON.stringify([])) : false
+function createArr() {  // создаем ключи в localStorage
+    if(!localStorage.getItem('filmoteka')) {
+        let filmoteka = {
+            'favorites': {},
+            'unviewed': {},
+            'viewed': {}
+        }
+        localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
+    }
 }
 
 function isArr(x, id) {
-    return JSON.parse(localStorage.getItem(x)).includes(id)
+    return id in JSON.parse(localStorage.getItem('filmoteka'))[x]
 }
 
-function checkArr(x, id) {  // изменяем данные в localStorage
-    let arr = JSON.parse(localStorage.getItem(x))
-    arr.includes(id) ? arr.splice(arr.indexOf(id), 1) : arr.push(id)
-    localStorage.setItem(x, JSON.stringify(arr))
+function checkArr(x, obj) {  // изменяем данные в localStorage
+    let filmoteka = JSON.parse(localStorage.getItem('filmoteka'))
+    
+    if(obj.id in filmoteka[x]) {  // если id переданного фильма есть в localStorage в переданном модуле
+        delete filmoteka[x][obj.id]  // удаляем фильм
+    }
+    else {  // иначе - добавляем фильм в нужный модуль
+        let film = {
+            h3: obj.name + ` (${obj.year})`,
+            img: obj.poster.previewUrl,
+            imdb: `IMDB: <span>${obj.rating.imdb} (${obj.votes.imdb})</span>`,
+            kp: `Кинопоиск: <span>${obj.rating.kp} (${obj.votes.kp})</span>`
+        }
+
+        filmoteka[x][obj.id] = film
+    }
+
+    localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
 }
 
 //----------------------------------------------
@@ -313,9 +334,7 @@ async function getMovieList() {  // получаем список фильмов
 
 function renderMovieList(movie_list) {  // отрисовка списка фильмов
     $main.innerHTML = ''
-    createArr('favorites')
-    createArr('unviewed')
-    createArr('viewed')
+    createArr()
 
     const $movies_list = document.createElement('div')
     $movies_list.id = 'movies_list'
@@ -347,7 +366,7 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('favorites', obj.id) ? $fav_point.classList.add('fav_fill') : false
                     $fav_point.addEventListener('click', () => {
                         $fav_point.classList.toggle('fav_fill')
-                        checkArr('favorites', obj.id)
+                        checkArr('favorites', obj)
                     })
 
                     let $unview_point = document.createElement('span')
@@ -356,10 +375,10 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('unviewed', obj.id) ? $unview_point.classList.add('unview_fill') : false
                     $unview_point.addEventListener('click', () => {
                         $unview_point.classList.add('unview_fill')
-                        checkArr('unviewed', obj.id)
+                        checkArr('unviewed', obj)
                         if($view_point.classList.contains('view_fill')) {
                             $view_point.classList.remove('view_fill')
-                            checkArr('viewed', obj.id)
+                            checkArr('viewed', obj)
                         }
                     })
 
@@ -369,10 +388,10 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('viewed', obj.id) ? $view_point.classList.add('view_fill') : false
                     $view_point.addEventListener('click', () => {
                         $view_point.classList.add('view_fill')
-                        checkArr('viewed', obj.id)
+                        checkArr('viewed', obj)
                         if($unview_point.classList.contains('unview_fill')) {
                             $unview_point.classList.remove('unview_fill')
-                            checkArr('unviewed', obj.id)
+                            checkArr('unviewed', obj)
                         }
                     })
 
