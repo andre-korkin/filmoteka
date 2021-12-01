@@ -1,4 +1,4 @@
-version = '0.2.4'
+version = '0.2.5'
 
 //----------------------------------------------
 
@@ -132,12 +132,12 @@ function checkArr(x, obj) {  // изменяем данные в localStorage
 
 const $body = document.querySelector('body')
 
+const $main = document.querySelector('#container')
+
 const $header = document.querySelector('header')  // отрисовка меню
 
     const $header_searh = $header.querySelector('#search')
-    $header_searh.addEventListener('click', () => {
-        createSearchPage()
-    })
+    $header_searh.addEventListener('click', () => createSearchPage())
 
     const $favorites = $header.querySelector('#favorites')
     $favorites.addEventListener('click', () => createFavoritesPage())
@@ -151,8 +151,6 @@ const $header = document.querySelector('header')  // отрисовка меню
 //----------------------------------------------
 
 let main_html = `<h1>Filmoteka <span>${version}</span></h1>`
-
-const $main = document.querySelector('#container')
 $main.innerHTML = main_html
 
 //----------------------------------------------
@@ -521,4 +519,99 @@ function MaxiPagination() {  // полная пагинация, показыв�
     }
 
     return $pagination
+}
+
+//----------------------------------------------
+
+function createFavoritesPage() {  // получение списка избранного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['favorites']
+
+    renderOtherList(storageList)
+}
+
+function createUnviewedPage() {  // получение списка непросмотренного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['unviewed']
+
+    renderOtherList(storageList)
+}
+
+function createViewedPage() {  // получение списка просмотренного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['viewed']
+
+    renderOtherList(storageList)
+}
+
+//----------------------------------------------
+
+function renderOtherList(movie_obj) {
+    const $movies_list = document.createElement('div')
+    $movies_list.id = 'movies_list'
+        Object.keys(movie_obj).forEach(id => {
+            let $movie_block = document.createElement('div')
+            $movie_block.className = 'movie_block'
+
+                let $h3 = document.createElement('h3')
+                $h3.textContent = movie_obj[id].h3
+                $h3.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $h3.addEventListener('mouseout', () => $h3.style.color = '#fff')
+
+                let $img = document.createElement('img')
+                $img.src = movie_obj[id].img
+                $img.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $img.addEventListener('mouseout', () => $h3.style.color = '#fff')
+
+                let $imdb = document.createElement('p')
+                $imdb.innerHTML = movie_obj[id].imdb
+
+                let $kp = document.createElement('p')
+                $kp.innerHTML = movie_obj[id].kp
+
+                let $check_block = document.createElement('div')
+                $check_block.className = 'check_block'
+                    // let $fav_point = document.createElement('span')
+                    // $fav_point.className = 'fav_point'
+                    // $fav_point.title = 'Добавить в избранное'
+                    // isArr('favorites', obj.id) ? $fav_point.classList.add('fav_fill') : false
+                    // $fav_point.addEventListener('click', () => {
+                    //     $fav_point.classList.toggle('fav_fill')
+                    //     checkArr('favorites', obj)
+                    // })
+
+                    // let $unview_point = document.createElement('span')
+                    // $unview_point.className = 'unview_point'
+                    // $unview_point.title = 'Добавить в непросмотренное'
+                    // isArr('unviewed', obj.id) ? $unview_point.classList.add('unview_fill') : false
+                    // $unview_point.addEventListener('click', () => {
+                    //     $unview_point.classList.add('unview_fill')
+                    //     checkArr('unviewed', obj)
+                    //     if($view_point.classList.contains('view_fill')) {
+                    //         $view_point.classList.remove('view_fill')
+                    //         checkArr('viewed', obj)
+                    //     }
+                    // })
+
+                    // let $view_point = document.createElement('span')
+                    // $view_point.className = 'view_point'
+                    // $view_point.title = 'Добавить в просмотренное'
+                    // isArr('viewed', obj.id) ? $view_point.classList.add('view_fill') : false
+                    // $view_point.addEventListener('click', () => {
+                    //     $view_point.classList.add('view_fill')
+                    //     checkArr('viewed', obj)
+                    //     if($unview_point.classList.contains('unview_fill')) {
+                    //         $unview_point.classList.remove('unview_fill')
+                    //         checkArr('unviewed', obj)
+                    //     }
+                    // })
+
+                    // $check_block.append($fav_point, $unview_point, $view_point)
+                $movie_block.append($h3, $img, $imdb, $kp, $check_block)
+
+            $movies_list.append($movie_block)
+        })
+
+        $movies_list.append(Pagination())
+    $main.append($movies_list)
 }
