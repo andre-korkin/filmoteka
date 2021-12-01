@@ -1,4 +1,4 @@
-version = '0.2.5'
+version = '0.3.1'
 
 //----------------------------------------------
 
@@ -571,19 +571,19 @@ function renderOtherList(movie_obj) {
 
                 let $check_block = document.createElement('div')
                 $check_block.className = 'check_block'
-                    // let $fav_point = document.createElement('span')
-                    // $fav_point.className = 'fav_point'
-                    // $fav_point.title = 'Добавить в избранное'
-                    // isArr('favorites', obj.id) ? $fav_point.classList.add('fav_fill') : false
+                    let $fav_point = document.createElement('span')
+                    $fav_point.className = 'fav_point'
+                    $fav_point.title = 'Добавить в избранное'
+                    isArr('favorites', id) ? $fav_point.classList.add('fav_fill') : false
                     // $fav_point.addEventListener('click', () => {
                     //     $fav_point.classList.toggle('fav_fill')
                     //     checkArr('favorites', obj)
                     // })
 
-                    // let $unview_point = document.createElement('span')
-                    // $unview_point.className = 'unview_point'
-                    // $unview_point.title = 'Добавить в непросмотренное'
-                    // isArr('unviewed', obj.id) ? $unview_point.classList.add('unview_fill') : false
+                    let $unview_point = document.createElement('span')
+                    $unview_point.className = 'unview_point'
+                    $unview_point.title = 'Добавить в непросмотренное'
+                    isArr('unviewed', id) ? $unview_point.classList.add('unview_fill') : false
                     // $unview_point.addEventListener('click', () => {
                     //     $unview_point.classList.add('unview_fill')
                     //     checkArr('unviewed', obj)
@@ -593,10 +593,10 @@ function renderOtherList(movie_obj) {
                     //     }
                     // })
 
-                    // let $view_point = document.createElement('span')
-                    // $view_point.className = 'view_point'
-                    // $view_point.title = 'Добавить в просмотренное'
-                    // isArr('viewed', obj.id) ? $view_point.classList.add('view_fill') : false
+                    let $view_point = document.createElement('span')
+                    $view_point.className = 'view_point'
+                    $view_point.title = 'Добавить в просмотренное'
+                    isArr('viewed', id) ? $view_point.classList.add('view_fill') : false
                     // $view_point.addEventListener('click', () => {
                     //     $view_point.classList.add('view_fill')
                     //     checkArr('viewed', obj)
@@ -606,12 +606,11 @@ function renderOtherList(movie_obj) {
                     //     }
                     // })
 
-                    // $check_block.append($fav_point, $unview_point, $view_point)
+                    $check_block.append($fav_point, $unview_point, $view_point)
                 $movie_block.append($h3, $img, $imdb, $kp, $check_block)
-
+                
             $movies_list.append($movie_block)
         })
 
-        $movies_list.append(Pagination())
     $main.append($movies_list)
 }
