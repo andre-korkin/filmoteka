@@ -1,4 +1,4 @@
-version = '0.2.4'
+version = '0.3.2'
 
 //----------------------------------------------
 
@@ -93,30 +93,71 @@ let url_ext = () => {  // полное готовое расширение URL, 
 
 //----------------------------------------------
 
-function createArr(x) {  // получаем данные из localStorage или создаем ключи (в первый раз)
-    !localStorage.getItem(x) ? localStorage.setItem(x, JSON.stringify([])) : false
+function createArr() {  // создаем ключи в localStorage
+    if(!localStorage.getItem('filmoteka')) {
+        let filmoteka = {
+            'favorites': {},
+            'unviewed': {},
+            'viewed': {}
+        }
+        localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
+    }
 }
 
 function isArr(x, id) {
-    return JSON.parse(localStorage.getItem(x)).includes(id)
+    return id in JSON.parse(localStorage.getItem('filmoteka'))[x]
 }
 
-function checkArr(x, id) {  // изменяем данные в localStorage
-    let arr = JSON.parse(localStorage.getItem(x))
-    arr.includes(id) ? arr.splice(arr.indexOf(id), 1) : arr.push(id)
-    localStorage.setItem(x, JSON.stringify(arr))
+function checkArr(x, obj) {  // изменяем данные в localStorage
+    let filmoteka = JSON.parse(localStorage.getItem('filmoteka'))
+    
+    if(obj.id in filmoteka[x]) {  // если id переданного фильма есть в localStorage в переданном модуле
+        delete filmoteka[x][obj.id]  // удаляем фильм
+    }
+    else {  // иначе - добавляем фильм в нужный модуль
+        let film = {
+            h3: obj.name + ` (${obj.year})`,
+            img: obj.poster.previewUrl,
+            imdb: `IMDB: <span>${obj.rating.imdb} (${obj.votes.imdb})</span>`,
+            kp: `Кинопоиск: <span>${obj.rating.kp} (${obj.votes.kp})</span>`
+        }
+
+        filmoteka[x][obj.id] = film
+    }
+
+    localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
+}
+
+function otherCheckArr(x, id, obj) {  // изменяем данные в localStorage
+    let filmoteka = JSON.parse(localStorage.getItem('filmoteka'))
+    
+    if(id in filmoteka[x]) {  // если id переданного фильма есть в localStorage в переданном модуле
+        delete filmoteka[x][id]  // удаляем фильм
+    }
+    else {  // иначе - добавляем фильм в нужный модуль
+        let film = {
+            h3: obj.h3,
+            img: obj.img,
+            imdb: obj.imdb,
+            kp: obj.kp
+        }
+
+        filmoteka[x][id] = film
+    }
+
+    localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
 }
 
 //----------------------------------------------
 
 const $body = document.querySelector('body')
 
+const $main = document.querySelector('#container')
+
 const $header = document.querySelector('header')  // отрисовка меню
 
     const $header_searh = $header.querySelector('#search')
-    $header_searh.addEventListener('click', () => {
-        createSearchPage()
-    })
+    $header_searh.addEventListener('click', () => createSearchPage())
 
     const $favorites = $header.querySelector('#favorites')
     $favorites.addEventListener('click', () => createFavoritesPage())
@@ -130,8 +171,6 @@ const $header = document.querySelector('header')  // отрисовка меню
 //----------------------------------------------
 
 let main_html = `<h1>Filmoteka <span>${version}</span></h1>`
-
-const $main = document.querySelector('#container')
 $main.innerHTML = main_html
 
 //----------------------------------------------
@@ -313,9 +352,7 @@ async function getMovieList() {  // получаем список фильмов
 
 function renderMovieList(movie_list) {  // отрисовка списка фильмов
     $main.innerHTML = ''
-    createArr('favorites')
-    createArr('unviewed')
-    createArr('viewed')
+    createArr()
 
     const $movies_list = document.createElement('div')
     $movies_list.id = 'movies_list'
@@ -347,7 +384,7 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('favorites', obj.id) ? $fav_point.classList.add('fav_fill') : false
                     $fav_point.addEventListener('click', () => {
                         $fav_point.classList.toggle('fav_fill')
-                        checkArr('favorites', obj.id)
+                        checkArr('favorites', obj)
                     })
 
                     let $unview_point = document.createElement('span')
@@ -356,10 +393,10 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('unviewed', obj.id) ? $unview_point.classList.add('unview_fill') : false
                     $unview_point.addEventListener('click', () => {
                         $unview_point.classList.add('unview_fill')
-                        checkArr('unviewed', obj.id)
+                        checkArr('unviewed', obj)
                         if($view_point.classList.contains('view_fill')) {
                             $view_point.classList.remove('view_fill')
-                            checkArr('viewed', obj.id)
+                            checkArr('viewed', obj)
                         }
                     })
 
@@ -369,10 +406,10 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('viewed', obj.id) ? $view_point.classList.add('view_fill') : false
                     $view_point.addEventListener('click', () => {
                         $view_point.classList.add('view_fill')
-                        checkArr('viewed', obj.id)
+                        checkArr('viewed', obj)
                         if($unview_point.classList.contains('unview_fill')) {
                             $unview_point.classList.remove('unview_fill')
-                            checkArr('unviewed', obj.id)
+                            checkArr('unviewed', obj)
                         }
                     })
 
@@ -502,4 +539,98 @@ function MaxiPagination() {  // полная пагинация, показыв�
     }
 
     return $pagination
+}
+
+//----------------------------------------------
+
+function createFavoritesPage() {  // получение списка избранного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['favorites']
+
+    renderOtherList(storageList)
+}
+
+function createUnviewedPage() {  // получение списка непросмотренного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['unviewed']
+
+    renderOtherList(storageList)
+}
+
+function createViewedPage() {  // получение списка просмотренного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['viewed']
+
+    renderOtherList(storageList)
+}
+
+//----------------------------------------------
+
+function renderOtherList(movie_obj) {
+    const $movies_list = document.createElement('div')
+    $movies_list.id = 'movies_list'
+        Object.keys(movie_obj).forEach(id => {
+            let $movie_block = document.createElement('div')
+            $movie_block.className = 'movie_block'
+
+                let $h3 = document.createElement('h3')
+                $h3.textContent = movie_obj[id].h3
+                $h3.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $h3.addEventListener('mouseout', () => $h3.style.color = '#fff')
+
+                let $img = document.createElement('img')
+                $img.src = movie_obj[id].img
+                $img.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $img.addEventListener('mouseout', () => $h3.style.color = '#fff')
+
+                let $imdb = document.createElement('p')
+                $imdb.innerHTML = movie_obj[id].imdb
+
+                let $kp = document.createElement('p')
+                $kp.innerHTML = movie_obj[id].kp
+
+                let $check_block = document.createElement('div')
+                $check_block.className = 'check_block'
+                    let $fav_point = document.createElement('span')
+                    $fav_point.className = 'fav_point'
+                    $fav_point.title = 'Добавить в избранное'
+                    isArr('favorites', id) ? $fav_point.classList.add('fav_fill') : false
+                    $fav_point.addEventListener('click', () => {
+                        $fav_point.classList.toggle('fav_fill')
+                        otherCheckArr('favorites', id, movie_obj[id])
+                    })
+
+                    let $unview_point = document.createElement('span')
+                    $unview_point.className = 'unview_point'
+                    $unview_point.title = 'Добавить в непросмотренное'
+                    isArr('unviewed', id) ? $unview_point.classList.add('unview_fill') : false
+                    $unview_point.addEventListener('click', () => {
+                        $unview_point.classList.add('unview_fill')
+                        otherCheckArr('unviewed', id, movie_obj[id])
+                        if($view_point.classList.contains('view_fill')) {
+                            $view_point.classList.remove('view_fill')
+                            otherCheckArr('viewed', id, movie_obj[id])
+                        }
+                    })
+
+                    let $view_point = document.createElement('span')
+                    $view_point.className = 'view_point'
+                    $view_point.title = 'Добавить в просмотренное'
+                    isArr('viewed', id) ? $view_point.classList.add('view_fill') : false
+                    $view_point.addEventListener('click', () => {
+                        $view_point.classList.add('view_fill')
+                        otherCheckArr('viewed', id, movie_obj[id])
+                        if($unview_point.classList.contains('unview_fill')) {
+                            $unview_point.classList.remove('unview_fill')
+                            otherCheckArr('unviewed', id, movie_obj[id])
+                        }
+                    })
+
+                    $check_block.append($fav_point, $unview_point, $view_point)
+                $movie_block.append($h3, $img, $imdb, $kp, $check_block)
+                
+            $movies_list.append($movie_block)
+        })
+
+    $main.append($movies_list)
 }
