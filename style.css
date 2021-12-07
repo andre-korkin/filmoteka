@@ -238,6 +238,72 @@ h3 {
     background: lightsalmon;
 }
 
+.movie_info {
+    width: 640px;
+    margin: 40px;
+    padding: 40px 30px 30px 30px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    box-shadow: 2px 2px 3px #000;
+    color: #fff;
+    position: relative;
+}
+
+.movie_info blockquote {
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: aqua;
+    font-size: 20px;
+}
+
+.movie_info .desc {
+    margin-top: 20px;
+    line-height: 150%;
+}
+
+.movie_info .genres {
+    margin: 20px 0;
+}
+
+.movie_info .genres span {
+    display: inline-block;
+    margin: 20px 20px 10px 0;
+    padding: 10px;
+    border: solid 1px aqua;
+    border-radius: 5px;
+}
+
+.movie_info .countries {
+    margin: 20px 0;
+}
+
+.movie_info .countries span {
+    display: inline-block;
+    margin: 20px 20px 10px 0;
+    padding: 10px;
+    border: solid 1px red;
+    border-radius: 5px;
+}
+
+.movie_info .trailers a {
+    display: inline-block;
+    margin: 20px 20px 10px 0;
+    padding: 5px;
+    color: aqua;
+    text-decoration: none;
+    border-bottom: solid 1px aqua;
+    transition-duration: .3s;
+}
+.movie_info .trailers a:hover {
+    color: orange;
+    border-bottom: solid 1px yellow;
+}
+
+.movie_info .trailers a:visited {
+    color: #fff;
+    border-bottom: solid 1px #fff;
+}
+
 #pagination {
     position: relative;
     width: 600px;
