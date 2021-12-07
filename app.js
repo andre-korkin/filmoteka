@@ -1,4 +1,4 @@
-version = '0.2.4'
+version = '1.0.0'
 
 //----------------------------------------------
 
@@ -93,30 +93,71 @@ let url_ext = () => {  // полное готовое расширение URL, 
 
 //----------------------------------------------
 
-function createArr(x) {  // получаем данные из localStorage или создаем ключи (в первый раз)
-    !localStorage.getItem(x) ? localStorage.setItem(x, JSON.stringify([])) : false
+function createArr() {  // создаем ключи в localStorage
+    if(!localStorage.getItem('filmoteka')) {
+        let filmoteka = {
+            'favorites': {},
+            'unviewed': {},
+            'viewed': {}
+        }
+        localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
+    }
 }
 
 function isArr(x, id) {
-    return JSON.parse(localStorage.getItem(x)).includes(id)
+    return id in JSON.parse(localStorage.getItem('filmoteka'))[x]
 }
 
-function checkArr(x, id) {  // изменяем данные в localStorage
-    let arr = JSON.parse(localStorage.getItem(x))
-    arr.includes(id) ? arr.splice(arr.indexOf(id), 1) : arr.push(id)
-    localStorage.setItem(x, JSON.stringify(arr))
+function checkArr(x, obj) {  // изменяем данные в localStorage
+    let filmoteka = JSON.parse(localStorage.getItem('filmoteka'))
+    
+    if(obj.id in filmoteka[x]) {  // если id переданного фильма есть в localStorage в переданном модуле
+        delete filmoteka[x][obj.id]  // удаляем фильм
+    }
+    else {  // иначе - добавляем фильм в нужный модуль
+        let film = {
+            h3: obj.name + ` (${obj.year})`,
+            img: obj.poster.previewUrl,
+            imdb: `IMDB: <span>${obj.rating.imdb} (${obj.votes.imdb})</span>`,
+            kp: `Кинопоиск: <span>${obj.rating.kp} (${obj.votes.kp})</span>`
+        }
+
+        filmoteka[x][obj.id] = film
+    }
+
+    localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
+}
+
+function otherCheckArr(x, id, obj) {  // изменяем данные в localStorage
+    let filmoteka = JSON.parse(localStorage.getItem('filmoteka'))
+    
+    if(id in filmoteka[x]) {  // если id переданного фильма есть в localStorage в переданном модуле
+        delete filmoteka[x][id]  // удаляем фильм
+    }
+    else {  // иначе - добавляем фильм в нужный модуль
+        let film = {
+            h3: obj.h3,
+            img: obj.img,
+            imdb: obj.imdb,
+            kp: obj.kp
+        }
+
+        filmoteka[x][id] = film
+    }
+
+    localStorage.setItem('filmoteka', JSON.stringify(filmoteka))
 }
 
 //----------------------------------------------
 
 const $body = document.querySelector('body')
 
+const $main = document.querySelector('#container')
+
 const $header = document.querySelector('header')  // отрисовка меню
 
     const $header_searh = $header.querySelector('#search')
-    $header_searh.addEventListener('click', () => {
-        createSearchPage()
-    })
+    $header_searh.addEventListener('click', () => createSearchPage())
 
     const $favorites = $header.querySelector('#favorites')
     $favorites.addEventListener('click', () => createFavoritesPage())
@@ -130,8 +171,6 @@ const $header = document.querySelector('header')  // отрисовка меню
 //----------------------------------------------
 
 let main_html = `<h1>Filmoteka <span>${version}</span></h1>`
-
-const $main = document.querySelector('#container')
 $main.innerHTML = main_html
 
 //----------------------------------------------
@@ -313,9 +352,7 @@ async function getMovieList() {  // получаем список фильмов
 
 function renderMovieList(movie_list) {  // отрисовка списка фильмов
     $main.innerHTML = ''
-    createArr('favorites')
-    createArr('unviewed')
-    createArr('viewed')
+    createArr()
 
     const $movies_list = document.createElement('div')
     $movies_list.id = 'movies_list'
@@ -327,11 +364,13 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                 $h3.textContent = obj.name + ` (${obj.year})`
                 $h3.addEventListener('mouseover', () => $h3.style.color = 'aqua')
                 $h3.addEventListener('mouseout', () => $h3.style.color = '#fff')
+                $h3.addEventListener('click', () => getMovie(obj.id))
 
                 let $img = document.createElement('img')
                 $img.src = obj.poster.previewUrl
                 $img.addEventListener('mouseover', () => $h3.style.color = 'aqua')
                 $img.addEventListener('mouseout', () => $h3.style.color = '#fff')
+                $img.addEventListener('click', () => getMovie(obj.id))
 
                 let $imdb = document.createElement('p')
                 $imdb.innerHTML = `IMDB: <span>${obj.rating.imdb} (${obj.votes.imdb})</span>`
@@ -347,7 +386,7 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('favorites', obj.id) ? $fav_point.classList.add('fav_fill') : false
                     $fav_point.addEventListener('click', () => {
                         $fav_point.classList.toggle('fav_fill')
-                        checkArr('favorites', obj.id)
+                        checkArr('favorites', obj)
                     })
 
                     let $unview_point = document.createElement('span')
@@ -356,10 +395,10 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('unviewed', obj.id) ? $unview_point.classList.add('unview_fill') : false
                     $unview_point.addEventListener('click', () => {
                         $unview_point.classList.add('unview_fill')
-                        checkArr('unviewed', obj.id)
+                        checkArr('unviewed', obj)
                         if($view_point.classList.contains('view_fill')) {
                             $view_point.classList.remove('view_fill')
-                            checkArr('viewed', obj.id)
+                            checkArr('viewed', obj)
                         }
                     })
 
@@ -369,10 +408,10 @@ function renderMovieList(movie_list) {  // отрисовка списка фи�
                     isArr('viewed', obj.id) ? $view_point.classList.add('view_fill') : false
                     $view_point.addEventListener('click', () => {
                         $view_point.classList.add('view_fill')
-                        checkArr('viewed', obj.id)
+                        checkArr('viewed', obj)
                         if($unview_point.classList.contains('unview_fill')) {
                             $unview_point.classList.remove('unview_fill')
-                            checkArr('unviewed', obj.id)
+                            checkArr('unviewed', obj)
                         }
                     })
 
@@ -502,4 +541,221 @@ function MaxiPagination() {  // полная пагинация, показыв�
     }
 
     return $pagination
+}
+
+//----------------------------------------------
+
+function createFavoritesPage() {  // получение списка избранного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['favorites']
+
+    renderOtherList(storageList)
+}
+
+function createUnviewedPage() {  // получение списка непросмотренного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['unviewed']
+
+    renderOtherList(storageList)
+}
+
+function createViewedPage() {  // получение списка просмотренного
+    $main.innerHTML = ''
+    const storageList = JSON.parse(localStorage.getItem('filmoteka'))['viewed']
+
+    renderOtherList(storageList)
+}
+
+//----------------------------------------------
+
+function renderOtherList(movie_obj) {
+    const $movies_list = document.createElement('div')
+    $movies_list.id = 'movies_list'
+        Object.keys(movie_obj).forEach(id => {
+            let $movie_block = document.createElement('div')
+            $movie_block.className = 'movie_block'
+
+                let $h3 = document.createElement('h3')
+                $h3.textContent = movie_obj[id].h3
+                $h3.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $h3.addEventListener('mouseout', () => $h3.style.color = '#fff')
+                $h3.addEventListener('click', () => getMovie(id))
+
+                let $img = document.createElement('img')
+                $img.src = movie_obj[id].img
+                $img.addEventListener('mouseover', () => $h3.style.color = 'aqua')
+                $img.addEventListener('mouseout', () => $h3.style.color = '#fff')
+                $img.addEventListener('click', () => getMovie(id))
+
+                let $imdb = document.createElement('p')
+                $imdb.innerHTML = movie_obj[id].imdb
+
+                let $kp = document.createElement('p')
+                $kp.innerHTML = movie_obj[id].kp
+
+                let $check_block = document.createElement('div')
+                $check_block.className = 'check_block'
+                    let $fav_point = document.createElement('span')
+                    $fav_point.className = 'fav_point'
+                    $fav_point.title = 'Добавить в избранное'
+                    isArr('favorites', id) ? $fav_point.classList.add('fav_fill') : false
+                    $fav_point.addEventListener('click', () => {
+                        $fav_point.classList.toggle('fav_fill')
+                        otherCheckArr('favorites', id, movie_obj[id])
+                    })
+
+                    let $unview_point = document.createElement('span')
+                    $unview_point.className = 'unview_point'
+                    $unview_point.title = 'Добавить в непросмотренное'
+                    isArr('unviewed', id) ? $unview_point.classList.add('unview_fill') : false
+                    $unview_point.addEventListener('click', () => {
+                        $unview_point.classList.add('unview_fill')
+                        otherCheckArr('unviewed', id, movie_obj[id])
+                        if($view_point.classList.contains('view_fill')) {
+                            $view_point.classList.remove('view_fill')
+                            otherCheckArr('viewed', id, movie_obj[id])
+                        }
+                    })
+
+                    let $view_point = document.createElement('span')
+                    $view_point.className = 'view_point'
+                    $view_point.title = 'Добавить в просмотренное'
+                    isArr('viewed', id) ? $view_point.classList.add('view_fill') : false
+                    $view_point.addEventListener('click', () => {
+                        $view_point.classList.add('view_fill')
+                        otherCheckArr('viewed', id, movie_obj[id])
+                        if($unview_point.classList.contains('unview_fill')) {
+                            $unview_point.classList.remove('unview_fill')
+                            otherCheckArr('unviewed', id, movie_obj[id])
+                        }
+                    })
+
+                    $check_block.append($fav_point, $unview_point, $view_point)
+                $movie_block.append($h3, $img, $imdb, $kp, $check_block)
+                
+            $movies_list.append($movie_block)
+        })
+
+    $main.append($movies_list)
+}
+
+//----------------------------------------------
+
+async function getMovie(id) {  // получаем фильм
+    $main.innerHTML = 'Идет загрузка данных...'
+
+    let req = await fetch(`https://api.kinopoisk.dev/movie?search=${id}&field=id&token=${token}`)
+    let res = await req.json()
+
+    renderMovie(res)
+}
+
+//----------------------------------------------
+
+function renderMovie(data) {  // отрисовка фильма
+    $main.innerHTML = ''
+
+    const $movies_list = document.createElement('div')
+    $movies_list.id = 'movies_list'
+
+    let $movie_block = document.createElement('div')
+    $movie_block.className = 'movie_block'
+
+        let $h3 = document.createElement('h3')
+        $h3.textContent = `${data.name} (${data.year})`
+        $h3.style.cursor = 'default'
+
+        let $img = document.createElement('img')
+        $img.src = data.poster.previewUrl
+        $img.style.cursor = 'default'
+
+        let $imdb = document.createElement('p')
+        $imdb.innerHTML = `IMDB: <span>${data.rating.imdb} (${data.votes.imdb})</span>`
+
+        let $kp = document.createElement('p')
+        $kp.innerHTML = `Кинопоиск: <span>${data.rating.kp} (${data.votes.kp})</span>`
+
+        let $check_block = document.createElement('div')
+        $check_block.className = 'check_block'
+            let $fav_point = document.createElement('span')
+            $fav_point.className = 'fav_point'
+            $fav_point.title = 'Добавить в избранное'
+            isArr('favorites', data.id) ? $fav_point.classList.add('fav_fill') : false
+            $fav_point.addEventListener('click', () => {
+                $fav_point.classList.toggle('fav_fill')
+                checkArr('favorites', data)
+            })
+
+            let $unview_point = document.createElement('span')
+            $unview_point.className = 'unview_point'
+            $unview_point.title = 'Добавить в непросмотренное'
+            isArr('unviewed', data.id) ? $unview_point.classList.add('unview_fill') : false
+            $unview_point.addEventListener('click', () => {
+                $unview_point.classList.add('unview_fill')
+                checkArr('unviewed', data)
+                if($view_point.classList.contains('view_fill')) {
+                    $view_point.classList.remove('view_fill')
+                    checkArr('viewed', data)
+                }
+            })
+
+            let $view_point = document.createElement('span')
+            $view_point.className = 'view_point'
+            $view_point.title = 'Добавить в просмотренное'
+            isArr('viewed', data.id) ? $view_point.classList.add('view_fill') : false
+            $view_point.addEventListener('click', () => {
+                $view_point.classList.add('view_fill')
+                checkArr('viewed', data)
+                if($unview_point.classList.contains('unview_fill')) {
+                    $unview_point.classList.remove('unview_fill')
+                    checkArr('unviewed', data)
+                }
+            })
+
+        $check_block.append($fav_point, $unview_point, $view_point)
+    $movie_block.append($h3, $img, $imdb, $kp, $check_block)
+
+    let $movie_info = document.createElement('div')
+    $movie_info.className = 'movie_info'
+
+        $slogan = document.createElement('blockquote')
+        $slogan.innerHTML = `&laquo;${data.slogan}&raquo;`
+        $slogan ? $movie_info.append($slogan) : false
+
+        $desc = document.createElement('div')
+        $desc.className = 'desc'
+        $desc.textContent = data.description
+        $desc ? $movie_info.append($desc) : false
+
+        $genres = document.createElement('div')
+        $genres.className = 'genres'
+        data.genres.forEach(genre => {
+            let $genre = document.createElement('span')
+            $genre.textContent = genre.name
+            $genres.append($genre)
+        })
+        $movie_info.append($genres)
+
+        $countries = document.createElement('div')
+        $countries.className = 'countries'
+        data.countries.forEach(country => {
+            let $country = document.createElement('span')
+            $country.textContent = country.name
+            $countries.append($country)
+        })
+        $movie_info.append($countries)
+
+        $trailers = document.createElement('div')
+        $trailers.className = 'trailers'
+        data.videos.trailers.forEach(trailer => {
+            let $trailer = document.createElement('a')
+            $trailer.textContent = trailer.name
+            $trailer.href = trailer.url
+            $trailer.target = '_blank'
+            $trailers.append($trailer)
+        })
+        $movie_info.append($trailers)
+
+    $movies_list.append($movie_block, $movie_info)
+    $main.append($movies_list)
 }
